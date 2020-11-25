@@ -23,13 +23,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       
-      - name: Setup DMD
-        # You may pin to the exact commit or the version.
-        # uses: WebFreak001/setup-dmd@f4b6758bef35537351a6c02dc900ce01e022e76c
-        uses: WebFreak001/setup-dmd@v1
+
+      - name: D Compiler Installation
+        uses: dlang-community/setup-dlang@v1.0.3
         with:
-        # DMD version string starting with 2.
-          dmd-version: 2.094.1
+          compiler: dmd-latest
 
       - name: Lint
         run: dub lint
