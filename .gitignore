@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/yal
+yal.so
+yal.dylib
+yal.dll
+yal.a
+yal.lib
+yal-test-*
+*.exe
+*.o
+*.obj
+*.lst
