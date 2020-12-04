@@ -1,0 +1,73 @@
+import module;
+import module { serialize, print }
+
+type t {
+  export { 
+    a := s64(1);
+  }
+  s64 b = 0; // private
+}
+
+function serialize(a) {
+  var v = static match(a.type) {
+    int: a.toString();
+    string: a;
+    struct => {
+      static if (serialize[a.type]) {
+        a.serialze();
+      else static loop (member: a.members) {
+        member.serialize;
+      }
+    }
+  }
+}
+
+function serialize(a, b,  c) {
+  // special handling
+}
+
+function sum(args...) {
+  static match (args.size) {
+    0 {
+      return;
+    }
+    1 {
+      return args[0];
+    }
+    else {
+      return ... + args;
+    }
+  }
+}
+
+function bind(func, variables...) {
+  type {
+    var fp = func;
+    var vars = variables;
+  } ret;
+  export function operator()[ret.type](args...) {
+    return ret.fp(ret.variables, ret.args);
+  }
+  return [ret];
+}
+
+function serialize(value: int)
+
+entry {
+  a : uninitialized[int];
+  a.func().other_func();
+  a.func(); // a has been invalidated
+}
+
+function append(strs...)
+{
+  size := ... + strs.size();
+  strs[0].reserve(size);
+  static for (str: strs.slice(start: 1))
+  strs[0].append(
+}
+
+function slice(arr, start = 0, end = arr.size - 1)
+{
+  return [pointer: arr.pointer + start, size: end];
+}

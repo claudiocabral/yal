@@ -1,0 +1,15 @@
+/*
+import stdc.stdio { 
+  whatever = puts,
+  printf,
+}
+*/
+
+function increment(value) {
+  return value + 1;
+}
+
+function entrypoint {
+  a := s64(7);
+  return a.increment();
+}
