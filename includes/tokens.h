@@ -2,11 +2,18 @@
 
 #include <array> 
 #include <string_view> 
+#include <nasty_macros.h>
+
+
+#define AKURA_TOKENS(...) \
+    enum class TokenId { __VA_ARGS__}; \
+    constexpr auto tokenDescriptors = std::array { STRINGIFY_MANY(__VA_ARGS__)}; \
+    static_assert(tokenDescriptors.size() != 1, ""); 
 
 namespace akura {
     //using namespace std::literals;
-    enum class TokenId {
-        import,
+    //enum class TokenId {
+        AKURA_TOKENS(import,
         open_parens,
         close_parens,
         open_curly_braces,
@@ -33,8 +40,9 @@ namespace akura {
         number,
         forward_slash,
         backwards_slash,
-        end
-    };
+        end);
+    //};
+    //constexpr std::array<std::string_view, static_cast<size_t>(TokenId::end)> TokenDescriptors;
     struct Token {
         std::string_view value;
         // std::string_view filename?;
@@ -47,5 +55,7 @@ namespace akura {
             line(line),
             column(column) {}
     };
-    //constexpr std::array<std::string_view, static_cast<size_t>(TokenId::end)> TokenDescriptors;
+    constexpr static inline auto & token_name(TokenId id) {
+        return tokenDescriptors[static_cast<int>(id)];
+    }
 }
