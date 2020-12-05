@@ -1,5 +1,5 @@
 // function declaration
-funcition_name(argument_list) > arg[0].type == s32 { }
+@{ safe, beautiful } funcition_name(argument_list) > arg[0].type == s32 { }
 [attribute_list] {
   body
 }

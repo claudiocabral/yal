@@ -3,6 +3,8 @@ project(sl)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(extern/Catch2)
+
 find_package(LLVM REQUIRED CONFIG)
 
 set(NAME sl)
@@ -24,7 +26,10 @@ set(INCLUDES
     )
 
 add_executable(${EXECUTABLE} srcs/main.cpp)
-add_executable(${TEST} tests/main.cpp)
+add_executable(${TEST}
+  tests/main.cpp
+  tests/lexer/simple_lexer.cpp
+  )
 add_library(${LIBRARY}
     srcs/lexer.cpp
     )
@@ -47,4 +52,4 @@ target_compile_definitions(${LIBRARY} PUBLIC ${LLVM_DEFINITIONS})
 target_compile_options(${LIBRARY} PUBLIC ${COMPILE_OPTIONS})
 
 target_link_libraries(${EXECUTABLE} ${LIBRARY})
-target_link_libraries(${TEST} ${LIBRARY})
+target_link_libraries(${TEST} ${LIBRARY} Catch2::Catch2)
