@@ -4,7 +4,7 @@
 #include <string_view> 
 
 namespace akura {
-    using namespace std::literals;
+    //using namespace std::literals;
     enum class TokenId {
         import,
         open_parens,
@@ -16,6 +16,8 @@ namespace akura {
         open_multiline_comment,
         close_multiline_comment,
         single_line_comment,
+        double_quote,
+        single_quote,
         operator_dot,
         operator_equals,
         operator_colon,
@@ -25,11 +27,12 @@ namespace akura {
         comma_separator,
         function_declaration,
         type_declaration,
-        variable,
+        word,
         return_statement,
         semicolon,
-        token_integer,
-        token_float,
+        number,
+        forward_slash,
+        backwards_slash,
         end
     };
     struct Token {
@@ -38,6 +41,11 @@ namespace akura {
         TokenId id;
         int line;
         int column;
+        Token(std::string_view value, TokenId id, int line, int column) :
+            value(value),
+            id(id),
+            line(line),
+            column(column) {}
     };
     //constexpr std::array<std::string_view, static_cast<size_t>(TokenId::end)> TokenDescriptors;
 }

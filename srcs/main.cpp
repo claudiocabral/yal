@@ -21,6 +21,7 @@
 #include <llvm/Target/TargetOptions.h>
 
 #include <string_view>
+#include <lexer.h>
 
 void func()
 {
