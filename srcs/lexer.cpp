@@ -10,7 +10,7 @@ using TokenList = std::vector<Token>;
 using Predicate = bool (*)(char);
 
 struct FileContext {
-    int line = 0;
+    int line = 1;
     int column = 0;
     std::string_view text;
 };
@@ -59,7 +59,7 @@ void lex_sequence(FileContext & context, TokenList & tokens)
 
 bool lex(std::string_view text) {
     std::vector<Token> tokens;
-    FileContext context{ 0, 0, text };
+    FileContext context{ 1, 0, text };
     while (true)
     {
         if (context.text.size() == 0)
