@@ -17,7 +17,6 @@ struct FileContext {
 
 static inline bool is_whitespace(char c) { return c == ' ' || c == '\t'; }
 static inline bool is_newline(char c) { return c == '\n'; }
-static inline bool is_forward_slash(char c) { return c == '/'; }
 static inline bool is_digit(char c) { return c >= '0' && c <= '9'; }
 static inline bool is_alphabetic(char c) {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
@@ -26,14 +25,29 @@ static inline bool is_alphabetic(char c) {
 void print_tokens(TokenList & tokens)
 {
     for (auto & token : tokens) {
-        printf("%d:%d:\n\tTokenId: %d\n\tValue: %.*s\n",
+        printf("%d:%d:\n\tTokenId: %s\n\tValue: %.*s\n",
                 token.line,
                 token.column,
-                static_cast<int>(token.id),
+                akura::token_name(token.id),
                 static_cast<int>(token.value.size()),
                 token.value.data()
                 );
     }
+}
+
+void emit_token(FileContext & context, TokenList & tokens, TokenId id, int size)
+{
+    auto begin = context.text.begin();
+    auto end = context.text.end();
+    tokens.emplace_back(
+            std::string_view(begin, size),
+            id,
+            context.line,
+            context.column
+            );
+    begin += size;
+    context.text = std::string_view(begin, end - begin);
+    context.column += size;
 }
 
 template <TokenId id, Predicate predicate>
@@ -48,6 +62,8 @@ void lex_sequence(FileContext & context, TokenList & tokens)
         ++it;
         ++context.column;
     }
+    emit_token(context, tokens, id, it - begin);
+    /*
     tokens.emplace_back(
             std::string_view(begin, std::distance(begin, it)),
             id,
@@ -55,7 +71,21 @@ void lex_sequence(FileContext & context, TokenList & tokens)
             context.column
             );
     context.text = std::string_view(it, end - it);
+    */
 }
+
+void lex_unkwon(FileContext & context)
+{
+    printf("%d:%d: Unkwon token: '%c'\n",
+            context.line,
+            context.column,
+            context.text.front()
+          );
+    ++context.column; context.text.remove_prefix(1);
+}
+
+
+
 
 bool lex(std::string_view text) {
     std::vector<Token> tokens;
@@ -72,7 +102,19 @@ bool lex(std::string_view text) {
         else if (is_newline(c)) { ++context.line; context.column = 0; context.text.remove_prefix(1); }
         else if (is_alphabetic(c)) { lex_sequence<TokenId::word, is_alphabetic>(context, tokens); }
         else if (is_digit(c)) { lex_sequence<TokenId::number, is_digit>(context, tokens); }
-        else { ++context.column; context.text.remove_prefix(1); }
+        else if (c == '\'') { emit_token(context, tokens, TokenId::single_quote, 1); }
+        else if (c == '\\') { emit_token(context, tokens, TokenId::backwards_slash, 1); }
+        else if (c == '"') { emit_token(context, tokens, TokenId::double_quote, 1); }
+        else if (c == '.') { emit_token(context, tokens, TokenId::operator_dot, 1); }
+        else if (c == '(') { emit_token(context, tokens, TokenId::open_parens, 1); }
+        else if (c == ')') { emit_token(context, tokens, TokenId::close_parens, 1); }
+        else if (c == '{') { emit_token(context, tokens, TokenId::open_curly_braces, 1); }
+        else if (c == '}') { emit_token(context, tokens, TokenId::close_curly_braces, 1); }
+        else if (c == '[') { emit_token(context, tokens, TokenId::open_square_braces, 1); }
+        else if (c == ']') { emit_token(context, tokens, TokenId::close_square_braces, 1); }
+        else if (c == '*') { emit_token(context, tokens, TokenId::operator_plus, 1); }
+        else if (c == '/') { emit_token(context, tokens, TokenId::forward_slash, 1); }
+        else { lex_unkwon(context); }
     }
     printf("error\n");
     return false;
