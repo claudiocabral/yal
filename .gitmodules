@@ -1,3 +1,6 @@
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = ../../catchorg/Catch2.git
+[submodule "extern/frozen"]
+	path = extern/frozen
+	url = ../../serge-sans-paille/frozen.git
