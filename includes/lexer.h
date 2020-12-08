@@ -1,5 +1,6 @@
 #pragma once
 
 #include <string_view>
+#include <tokens.h>
 
-bool lex(std::string_view text);
+std::vector<akura::Token> lex(std::string_view text);

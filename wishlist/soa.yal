@@ -1,0 +1,48 @@
+soa := type (T, size) {
+    static assert(T.meta.type == type);
+    static assert(size.is_numeric && size > 0);
+    static for(member; T.meta.members) {
+        member.meta.identifier : array(size, member.meta.type);
+    }
+}
+
+
+
+vec3 := type {
+    x: s32;
+    y: s32;
+    z: s32;
+}
+
+// global constructors?
+operator() := (T, args...) {
+    t : @uninitialized T;
+    static for(arg; args) {
+        type[arg.meta.name] = arg
+    }
+    return t
+}
+
+// like rust drop?
+destroy := (x: X) {
+    x.whatever.free
+}
+
+f := (x, y) {
+}
+
+f(y = 3, x = 5);
+
+entrypoint := {
+    array_of_vecs: soa(vec3);
+    a := soa(vec3)( // could also be a := array_of_vecs( /* ... */ )
+                x = [0, 1, 2],
+                y = [0, 1, 2],
+                z = [0, 1, 2],
+            );
+    defer : const = { a.destroy() }();
+    for (x: a.x) {
+        x = 3
+    }
+    defer();
+}

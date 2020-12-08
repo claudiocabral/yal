@@ -4,48 +4,53 @@
 #include <string_view> 
 #include <nasty_macros.h>
 
-
-#define AKURA_TOKENS(...) \
-    enum class TokenId { __VA_ARGS__}; \
-    constexpr auto tokenDescriptors = std::array { STRINGIFY_MANY(__VA_ARGS__)}; \
-    static_assert(tokenDescriptors.size() != 1, ""); 
-
 namespace akura {
-    //using namespace std::literals;
-    //enum class TokenId {
-        AKURA_TOKENS(import,
-        open_parens,
-        close_parens,
-        open_curly_braces,
-        close_curly_braces,
-        open_square_braces,
-        close_square_braces,
-        open_multiline_comment,
-        close_multiline_comment,
-        single_line_comment,
-        double_quote,
-        single_quote,
-        operator_dot,
-        operator_equals,
-        operator_colon,
-        operator_colon_equals,
-        operator_plus,
-        operator_minus,
-        comma_separator,
-        function_declaration,
-        type_declaration,
-        word,
-        return_statement,
-        semicolon,
-        number,
-        forward_slash,
-        backwards_slash,
-        end);
-    //};
-    //constexpr std::array<std::string_view, static_cast<size_t>(TokenId::end)> TokenDescriptors;
+        AKURA_ENUM_ARRAY(TokenId, tokenDescriptors,
+                import,
+                open_parens,
+                close_parens,
+                open_curly_braces,
+                close_curly_braces,
+                open_square_braces,
+                close_square_braces,
+                open_multiline_comment,
+                close_multiline_comment,
+                single_line_comment,
+                double_quote,
+                single_quote,
+                operator_dot,
+                operator_equals,
+                operator_colon,
+                operator_colon_equals,
+                operator_plus,
+                operator_minus,
+                operator_star,
+                comma_separator,
+                function_declaration,
+                type_declaration,
+                return_statement,
+                semicolon,
+                colon,
+                integer,
+                floating_point,
+                forward_slash,
+                backwards_slash,
+                identifier,
+                keyword_s64,
+                keyword_s32,
+                keyword_s16,
+                keyword_s8,
+                keyword_u64,
+                keyword_u32,
+                keyword_u16,
+                keyword_u8,
+                keyword_f64,
+                keyword_f32,
+                keyword_if,
+                keyword_for,
+                end);
     struct Token {
         std::string_view value;
-        // std::string_view filename?;
         TokenId id;
         int line;
         int column;
