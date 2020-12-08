@@ -23,6 +23,7 @@ set(COMPILE_OPTIONS
 
 set(INCLUDES
     includes
+    extern/frozen/include
     )
 
 add_executable(${EXECUTABLE} srcs/main.cpp)

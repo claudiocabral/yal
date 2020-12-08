@@ -4,3 +4,8 @@
   body
 }
 
+function_name := (x: s32, y: (s32) -> s32) -> z: s32, a: bool {
+    a := (a, b) { a + b }
+    x
+}
+

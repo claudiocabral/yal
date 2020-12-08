@@ -3,6 +3,7 @@
 #include <tokens.h>
 #include <lexer.h>
 #include <cstdio>
+#include <keywords.h>
 
 using akura::Token;
 using akura::TokenId;
@@ -11,21 +12,21 @@ using Predicate = bool (*)(char);
 
 struct FileContext {
     int line = 1;
-    int column = 0;
+    int column = 1;
     std::string_view text;
 };
 
 static inline bool is_whitespace(char c) { return c == ' ' || c == '\t'; }
 static inline bool is_newline(char c) { return c == '\n'; }
 static inline bool is_digit(char c) { return c >= '0' && c <= '9'; }
-static inline bool is_alphabetic(char c) {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
-}
+static inline bool is_alphabetic(char c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
+static inline bool is_alphanumeric(char c) { return is_digit(c) || is_alphabetic(c) || c == '_'; }
+static inline bool is_identifier_character(char c) { return is_alphanumeric(c) || c == '_'; }
 
 void print_tokens(TokenList & tokens)
 {
     for (auto & token : tokens) {
-        printf("%d:%d:\n\tTokenId: %s\n\tValue: %.*s\n",
+        printf("%d:%d:\tTokenId: %s\n\tValue: %.*s\n",
                 token.line,
                 token.column,
                 akura::token_name(token.id),
@@ -50,6 +51,48 @@ void emit_token(FileContext & context, TokenList & tokens, TokenId id, int size)
     context.column += size;
 }
 
+template <class Predicate>
+auto find_token_end(FileContext & context, Predicate && predicate)
+{
+    auto begin = context.text.begin();
+    auto it = context.text.begin() + 1;
+    auto end = context.text.end();
+    while (it != end && predicate(*it))
+    {
+        ++it;
+    }
+    auto token = std::string_view(begin, it - begin);
+    begin += token.size();
+    context.text = std::string_view(begin, end - begin);
+    context.column += token.size();
+    return token;
+}
+
+void lex_identifier(FileContext & context, TokenList & tokens)
+{
+    auto column = context.column;
+    auto token = find_token_end(context, is_identifier_character);
+    auto keyword = akura::keywords.find(token);
+    auto id = keyword != akura::keywords.end()
+        ? keyword->second
+        : TokenId::identifier;
+    tokens.emplace_back(token, id, context.line, column);
+}
+
+void lex_number(FileContext & context, TokenList & tokens)
+{
+    auto column = context.column;
+    auto token = find_token_end(context, is_identifier_character);
+    if (context.text.size() != 0 && context.text[0] != '.')
+    {
+        tokens.emplace_back(token, TokenId::integer, context.line, column);
+        return;
+    }
+    auto remainder = find_token_end(context, is_identifier_character);
+    auto result = std::string_view(token.begin(), token.size() + remainder.size());
+    tokens.emplace_back(result, TokenId::floating_point, context.line, column);
+}
+
 template <TokenId id, Predicate predicate>
 void lex_sequence(FileContext & context, TokenList & tokens)
 {
@@ -60,7 +103,6 @@ void lex_sequence(FileContext & context, TokenList & tokens)
     while (it != end && predicate(*it))
     {
         ++it;
-        ++context.column;
     }
     emit_token(context, tokens, id, it - begin);
     /*
@@ -87,21 +129,21 @@ void lex_unkwon(FileContext & context)
 
 
 
-bool lex(std::string_view text) {
+std::vector<akura::Token> lex(std::string_view text) {
     std::vector<Token> tokens;
-    FileContext context{ 1, 0, text };
+    FileContext context{ 1, 1, text };
     while (true)
     {
         if (context.text.size() == 0)
         {
-            print_tokens(tokens);
-            return true;
+            emit_token(context, tokens, TokenId::end, 0);
+            return tokens;
         }
         auto c = context.text.front();
         if (is_whitespace(c)) { ++context.column; context.text.remove_prefix(1); }
-        else if (is_newline(c)) { ++context.line; context.column = 0; context.text.remove_prefix(1); }
-        else if (is_alphabetic(c)) { lex_sequence<TokenId::word, is_alphabetic>(context, tokens); }
-        else if (is_digit(c)) { lex_sequence<TokenId::number, is_digit>(context, tokens); }
+        else if (is_newline(c)) { ++context.line; context.column = 1; context.text.remove_prefix(1); }
+        else if (is_alphabetic(c)) { lex_identifier(context, tokens); }
+        else if (is_digit(c)) { lex_number(context, tokens); }
         else if (c == '\'') { emit_token(context, tokens, TokenId::single_quote, 1); }
         else if (c == '\\') { emit_token(context, tokens, TokenId::backwards_slash, 1); }
         else if (c == '"') { emit_token(context, tokens, TokenId::double_quote, 1); }
@@ -112,10 +154,12 @@ bool lex(std::string_view text) {
         else if (c == '}') { emit_token(context, tokens, TokenId::close_curly_braces, 1); }
         else if (c == '[') { emit_token(context, tokens, TokenId::open_square_braces, 1); }
         else if (c == ']') { emit_token(context, tokens, TokenId::close_square_braces, 1); }
-        else if (c == '*') { emit_token(context, tokens, TokenId::operator_plus, 1); }
+        else if (c == '*') { emit_token(context, tokens, TokenId::operator_star, 1); }
         else if (c == '/') { emit_token(context, tokens, TokenId::forward_slash, 1); }
+        else if (c == ':') { emit_token(context, tokens, TokenId::colon, 1); }
+        else if (c == ';') { emit_token(context, tokens, TokenId::semicolon, 1); }
         else { lex_unkwon(context); }
     }
-    printf("error\n");
-    return false;
+    tokens.clear();
+    return tokens;
 }

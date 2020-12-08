@@ -1,4 +1,7 @@
 #pragma once
+
+#include <array>
+
 #define STRINGIFY(x) #x
 #define STRINGIFY_1(x) STRINGIFY(x)
 #define STRINGIFY_2(x, ...) STRINGIFY(x),   STRINGIFY_1(__VA_ARGS__)
@@ -128,4 +131,8 @@
 #define STRINGIFY_126(x, ...) STRINGIFY(x), STRINGIFY_125(__VA_ARGS__)
 #define STRINGIFY_127(x, ...) STRINGIFY(x), STRINGIFY_126(__VA_ARGS__)
 #define STRINGIFY_128(x, ...) STRINGIFY(x), STRINGIFY_127(__VA_ARGS__)
-#define STRINGIFY_MANY(...) STRINGIFY_128(__VA_ARGS__)
+# define STRINGIFY_MANY(...) STRINGIFY_128(__VA_ARGS__)
+
+#define AKURA_ENUM_ARRAY(enum_name, array_name, ...) \
+    enum class enum_name { __VA_ARGS__}; \
+    constexpr auto array_name = std::array { STRINGIFY_MANY(__VA_ARGS__)};

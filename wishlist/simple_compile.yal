@@ -5,11 +5,17 @@ import stdc.stdio {
 }
 */
 
-function increment(value) {
+increment := (value) {
   return value + 1;
 }
 
-function entrypoint {
+increment := (value: f32 = 32) -> () {
+    static assert(value.meta.type.is_compatible(f32));
+}
+
+entrypoint := {
+  static assert(1 == 1);
   a := s64(7);
   return a.increment();
+  increment    (value) {}
 }
