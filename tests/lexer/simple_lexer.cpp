@@ -1,4 +1,3 @@
-#include <iostream>
 #include <catch2/catch.hpp>
 #include <lexer.h>
 
@@ -49,6 +48,30 @@ TEST_CASE("Lex symbols", "[lex]")
         akura::Token { ":", akura::TokenId::colon, 1, 13},
         akura::Token { ";", akura::TokenId::semicolon, 1, 14},
         akura::Token { "", akura::TokenId::end, 1, 15}
+    };
+    auto tokens = lex(symbols);
+    REQUIRE(tokens.size() == expected_tokens.size());
+    auto size = tokens.size();
+    auto i = GENERATE_COPY(range<int>(0, size));
+    CHECK(tokens[i].value == expected_tokens[i].value);
+    CHECK(tokens[i].id == expected_tokens[i].id);
+    CHECK(tokens[i].line == expected_tokens[i].line);
+    CHECK(tokens[i].column == expected_tokens[i].column);
+}
+
+TEST_CASE("Lex comments", "[lex]")
+{
+    constexpr std::string_view symbols =
+        "abc // abc 123\n"
+        "def // abc 123\n"
+        "/* /**/*/\n"
+        "z\n"
+        "";
+    auto expected_tokens = std::array {
+        akura::Token { "abc", akura::TokenId::identifier, 1, 1},
+        akura::Token { "def", akura::TokenId::identifier, 2, 1},
+        akura::Token { "z", akura::TokenId::identifier, 4, 1},
+        akura::Token { "", akura::TokenId::end, 5, 1},
     };
     auto tokens = lex(symbols);
     REQUIRE(tokens.size() == expected_tokens.size());

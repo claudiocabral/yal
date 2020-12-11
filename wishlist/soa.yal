@@ -15,7 +15,7 @@ vec3 := type {
 }
 
 // global constructors?
-operator() := (T, args...) {
+operator() := (T.satisfies(Integer), args...) {
     t : @uninitialized T;
     static for(arg; args) {
         type[arg.meta.name] = arg
@@ -31,10 +31,9 @@ destroy := (x: X) {
 f := (x, y) {
 }
 
-f(y = 3, x = 5);
-
 entrypoint := {
-    array_of_vecs: soa(vec3);
+    f := (x, y) { x + y }
+    array_of_vecs: soa(T = vec3);
     a := soa(vec3)( // could also be a := array_of_vecs( /* ... */ )
                 x = [0, 1, 2],
                 y = [0, 1, 2],

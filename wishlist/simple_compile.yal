@@ -5,7 +5,7 @@ import stdc.stdio {
 }
 */
 
-increment := (value) {
+increment : static = (value) {
   return value + 1;
 }
 
@@ -17,5 +17,8 @@ entrypoint := {
   static assert(1 == 1);
   a := s64(7);
   return a.increment();
-  increment    (value) {}
+}
+
+static for member of this.mebers {
+    export member;
 }

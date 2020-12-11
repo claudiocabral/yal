@@ -93,27 +93,76 @@ void lex_number(FileContext & context, TokenList & tokens)
     tokens.emplace_back(result, TokenId::floating_point, context.line, column);
 }
 
-template <TokenId id, Predicate predicate>
-void lex_sequence(FileContext & context, TokenList & tokens)
+void lex_multiline_comment(FileContext & context, TokenList & tokens)
 {
-    context.column += 1;
-    auto begin = context.text.begin();
-    auto it = context.text.begin() + 1;
+    auto level = 1;
+    constexpr int16_t open = ('/' << 8) | ('*');
+    constexpr int16_t close = ('*' << 8) | ('/');
+    auto begin = context.text.begin() + 2;
     auto end = context.text.end();
-    while (it != end && predicate(*it))
+    while (begin < end && begin + 1 < end)
     {
-        ++it;
+        int16_t token = begin[0] << 8 | begin[1];
+        if (token == open)
+        {
+            begin += 2;
+            context.column += 2;
+            ++level;
+        }
+        else if (token == close)
+        {
+            begin += 2;
+            context.column += 2;
+            --level;
+            if (level == 0)
+                break;
+        }
+        else if (begin[0] == '\n')
+        {
+            context.column = 1;
+            ++context.line;
+            ++begin;
+        }
+        else
+        {
+            ++begin;
+            ++context.column;
+        }
+
     }
-    emit_token(context, tokens, id, it - begin);
-    /*
-    tokens.emplace_back(
-            std::string_view(begin, std::distance(begin, it)),
-            id,
-            context.line,
-            context.column
-            );
-    context.text = std::string_view(it, end - it);
-    */
+    auto old_begin = context.text.begin();
+    context.text.remove_prefix(begin - old_begin);
+}
+
+void lex_forward_slash(FileContext & context, TokenList & tokens)
+{
+    auto column = context.column;
+    auto line = context.line;
+    auto begin = context.text.begin() + 1;
+    auto end = context.text.end();
+    if (begin == end)
+        return ;
+    if (*begin == '/')
+    {
+        ++begin;
+        while (begin != end && *begin != '\n')
+        {
+            ++begin;
+        }
+        begin += begin != end;
+        context.column = 1;
+        ++context.line;
+        auto old_begin = context.text.begin();
+        context.text.remove_prefix(begin - old_begin);
+    }
+    else if (*begin == '*')
+    {
+        lex_multiline_comment(context, tokens);
+    }
+    else
+    {
+        emit_token(context, tokens, TokenId::forward_slash, 1);
+    }
 }
 
 void lex_unkwon(FileContext & context)
@@ -144,6 +193,7 @@ std::vector<akura::Token> lex(std::string_view text) {
         else if (is_newline(c)) { ++context.line; context.column = 1; context.text.remove_prefix(1); }
         else if (is_alphabetic(c)) { lex_identifier(context, tokens); }
         else if (is_digit(c)) { lex_number(context, tokens); }
+        else if (c == '/') { lex_forward_slash(context, tokens); }
         else if (c == '\'') { emit_token(context, tokens, TokenId::single_quote, 1); }
         else if (c == '\\') { emit_token(context, tokens, TokenId::backwards_slash, 1); }
         else if (c == '"') { emit_token(context, tokens, TokenId::double_quote, 1); }
@@ -155,7 +205,6 @@ std::vector<akura::Token> lex(std::string_view text) {
         else if (c == '[') { emit_token(context, tokens, TokenId::open_square_braces, 1); }
         else if (c == ']') { emit_token(context, tokens, TokenId::close_square_braces, 1); }
         else if (c == '*') { emit_token(context, tokens, TokenId::operator_star, 1); }
-        else if (c == '/') { emit_token(context, tokens, TokenId::forward_slash, 1); }
         else if (c == ':') { emit_token(context, tokens, TokenId::colon, 1); }
         else if (c == ';') { emit_token(context, tokens, TokenId::semicolon, 1); }
         else { lex_unkwon(context); }

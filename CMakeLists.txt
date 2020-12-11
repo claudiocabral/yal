@@ -18,7 +18,6 @@ set(COMPILE_OPTIONS
     -Wextra
     -Wno-unused-parameter
     -Wno-unused-variable
-    -Wno-unused-but-set-variable
     )
 
 set(INCLUDES
@@ -33,6 +32,7 @@ add_executable(${TEST}
   )
 add_library(${LIBRARY}
     srcs/lexer.cpp
+    srcs/parser.cpp
     )
 set_target_properties(${LIBRARY} PROPERTIES OUTPUT_NAME ${NAME})
 
