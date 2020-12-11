@@ -6,7 +6,6 @@
 
 namespace akura {
         AKURA_ENUM_ARRAY(TokenId, tokenDescriptors,
-                import,
                 open_parens,
                 close_parens,
                 open_curly_braces,
@@ -48,6 +47,10 @@ namespace akura {
                 keyword_f32,
                 keyword_if,
                 keyword_for,
+                keyword_match,
+                keyword_static,
+                keyword_import,
+                keyword_export,
                 end);
     struct Token {
         std::string_view value;
