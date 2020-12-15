@@ -22,6 +22,7 @@
 
 #include <string_view>
 #include <lexer.h>
+#include <task_system/task_system.h>
 
 void func()
 {
@@ -64,6 +65,8 @@ int scripting_mode() {
 
 int app(int argc, char **argv)
 {
+    if (argc == 1)
+        return scripting_mode();
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
     llvm::InitializeAllTargetMCs();
@@ -89,40 +92,43 @@ int app(int argc, char **argv)
         Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
 
-    auto Filename = "output.o";
-    std::error_code EC;
-    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
+    TaskSystem scheduler;
 
-    if (EC) {
-        llvm::errs() << "Could not open file: " << EC.message();
-        return 1;
-    }
-
-    llvm::legacy::PassManager pass;
-    auto FileType = llvm::CGFT_ObjectFile;
-
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
-        llvm::errs() << "TheTargetMachine can't emit a file of this type";
-        return 1;
-    }
-
-    if (argc == 1)
-        return scripting_mode();
     while(--argc)
     {
-        ++argv;
+        scheduler.spawn([&]() {
+        char output_name[2048];
+        auto input_file = *(++argv);
+        snprintf(output_name, sizeof(output_name), "%s.o", input_file);
+        std::error_code EC;
+        llvm::raw_fd_ostream dest(output_name, EC, llvm::sys::fs::OF_None);
+
+        if (EC) {
+            llvm::errs() << "Could not open file: " << EC.message();
+            return;
+        }
+
+        llvm::legacy::PassManager pass;
+        auto FileType = llvm::CGFT_ObjectFile;
+
+        if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+            llvm::errs() << "TheTargetMachine can't emit a file of this type";
+            return;
+        }
         llvm::LLVMContext context;
-        llvm::Module module(*argv, context);
+        llvm::Module module(input_file, context);
         llvm::IRBuilder<> builder(context); 
         module.setDataLayout(TheTargetMachine->createDataLayout());
         module.setTargetTriple(TargetTriple);
 
-        if (!process_file(*argv, context, module, builder))
-            return 1;
+        if (!process_file(input_file, context, module, builder))
+            return;
         pass.run(module);
-        llvm::outs() << "Wrote " << Filename << "\n";
+        llvm::outs() << "Wrote " << output_name << "\n";
         dest.flush();
+    });
     }
+    scheduler.run();
     return 0;
 }
 

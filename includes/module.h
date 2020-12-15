@@ -2,11 +2,22 @@
 #include <unordered_map>
 #include <string>
 
+template <class T>
+struct Alias { 
+    explicit Alias(int value) : value(value) {};
+    int value;
+};
+
+struct TypeIndexTag{};
+
+using TypeIndex = Alias<TypeIndexTag>;
+
+template <class T> using Map = std::unordered_map<std::string, T>;
+
 namespace akura {
     struct Module {
-        template <class T> using Map = std::unordered_map<std::string, T>;
         struct Type {
-            Map<Type *> members;
+            Map<TypeIndex> members;
             int size;
         };
         struct Function {

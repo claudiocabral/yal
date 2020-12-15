@@ -6,6 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(extern/Catch2)
 
 find_package(LLVM REQUIRED CONFIG)
+find_package(Threads REQUIRED)
 
 set(NAME sl)
 set(LIBRARY lib${NAME})
@@ -47,7 +48,7 @@ set_target_properties(${LIBRARY} ${EXECUTABLE} ${TEST}
     CXX_STANDARD_REQUIRED YES
     )
 
-target_link_libraries(${LIBRARY} LLVM)
+target_link_libraries(${LIBRARY} LLVM Threads::Threads)
 target_include_directories(${LIBRARY} PUBLIC ${INCLUDES} ${LLVM_INCLUDE_DIRS})
 target_compile_definitions(${LIBRARY} PUBLIC ${LLVM_DEFINITIONS})
 target_compile_options(${LIBRARY} PUBLIC ${COMPILE_OPTIONS})

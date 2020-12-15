@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <task_system/task_system.h>
 #include <lexer.h>
 
 using namespace std::literals;
