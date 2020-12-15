@@ -26,6 +26,8 @@ set(INCLUDES
     extern/frozen/include
     )
 
+  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+
 add_executable(${EXECUTABLE} srcs/main.cpp)
 add_executable(${TEST}
   tests/main.cpp
@@ -37,11 +39,6 @@ add_library(${LIBRARY}
     )
 set_target_properties(${LIBRARY} PROPERTIES OUTPUT_NAME ${NAME})
 
-#set_target_properties(${EXECUTABLE}
-#    PROPERTIES
-#    CXX_STANDARD 17
-#    CXX_STANDARD_REQUIRED YES
-#    )
 set_target_properties(${LIBRARY} ${EXECUTABLE} ${TEST}
     PROPERTIES
     CXX_STANDARD 17

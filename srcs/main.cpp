@@ -88,17 +88,17 @@ int app(int argc, char **argv)
 
     llvm::TargetOptions opt;
     auto RM = llvm::Reloc::Model::PIC_;
-    auto TheTargetMachine =
-        Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
 
     TaskSystem scheduler;
 
     while(--argc)
     {
-        scheduler.spawn([&]() {
+        ++argv;
+        scheduler.spawn([&, input_file = *argv]() {
+                auto TheTargetMachine =
+                Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
         char output_name[2048];
-        auto input_file = *(++argv);
         snprintf(output_name, sizeof(output_name), "%s.o", input_file);
         std::error_code EC;
         llvm::raw_fd_ostream dest(output_name, EC, llvm::sys::fs::OF_None);
