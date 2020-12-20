@@ -57,6 +57,9 @@ namespace akura {
         TokenId id;
         int line;
         int column;
+        Token() = default;
+        Token(const Token &) = default;
+        Token(Token &&) = default;
         Token(std::string_view value, TokenId id, int line, int column) :
             value(value),
             id(id),
