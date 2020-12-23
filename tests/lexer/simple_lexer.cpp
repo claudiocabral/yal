@@ -4,6 +4,23 @@
 
 using namespace std::literals;
 
+template <class T, class U>
+void compare_token_lists(const T & actual, const U & expected)
+{
+    CHECK(actual.size() == expected.size());
+
+    auto size = actual.size() < expected.size()
+        ? actual.size()
+        : expected.size();
+
+    for (size_t i = 0; i < size; ++i) {
+        CHECK(actual[i].value == expected[i].value);
+        CHECK(actual[i].id == expected[i].id);
+        CHECK(actual[i].line == expected[i].line);
+        CHECK(actual[i].column == expected[i].column);
+    }
+}
+
 TEST_CASE("Lex Numbers", "[lex]")
 {
     constexpr std::string_view numbers =
@@ -11,21 +28,20 @@ TEST_CASE("Lex Numbers", "[lex]")
         "1.0\n"
         "912376921791.0128390180\n"
         "98765432101234567890123456789\n"
+        "123a456\n"
         "";
     auto expected_tokens = std::array {
         akura::Token { "1", akura::TokenId::integer, 1, 1},
         akura::Token { "1.0", akura::TokenId::floating_point, 2, 1},
         akura::Token { "912376921791.0128390180", akura::TokenId::floating_point, 3, 1},
         akura::Token { "98765432101234567890123456789", akura::TokenId::integer, 4, 1},
-        akura::Token { "", akura::TokenId::end, 5, 1}
+        akura::Token { "123", akura::TokenId::integer, 5, 1},
+        akura::Token { "a456", akura::TokenId::identifier, 5, 4},
+        akura::Token { "", akura::TokenId::end, 6, 1}
     };
+
     auto tokens = lex(numbers);
-    REQUIRE(tokens.size() == expected_tokens.size());
-    auto i = GENERATE(range(0, 5));
-    CHECK(tokens[i].value == expected_tokens[i].value);
-    CHECK(tokens[i].id == expected_tokens[i].id);
-    CHECK(tokens[i].line == expected_tokens[i].line);
-    CHECK(tokens[i].column == expected_tokens[i].column);
+    compare_token_lists(tokens, expected_tokens);
 }
 
 TEST_CASE("Lex symbols", "[lex]")
@@ -51,13 +67,7 @@ TEST_CASE("Lex symbols", "[lex]")
         akura::Token { "", akura::TokenId::end, 1, 15}
     };
     auto tokens = lex(symbols);
-    REQUIRE(tokens.size() == expected_tokens.size());
-    auto size = tokens.size();
-    auto i = GENERATE_COPY(range<int>(0, size));
-    CHECK(tokens[i].value == expected_tokens[i].value);
-    CHECK(tokens[i].id == expected_tokens[i].id);
-    CHECK(tokens[i].line == expected_tokens[i].line);
-    CHECK(tokens[i].column == expected_tokens[i].column);
+    compare_token_lists(tokens, expected_tokens);
 }
 
 TEST_CASE("Lex comments", "[lex]")
@@ -75,11 +85,5 @@ TEST_CASE("Lex comments", "[lex]")
         akura::Token { "", akura::TokenId::end, 5, 1},
     };
     auto tokens = lex(symbols);
-    REQUIRE(tokens.size() == expected_tokens.size());
-    auto size = tokens.size();
-    auto i = GENERATE_COPY(range<int>(0, size));
-    CHECK(tokens[i].value == expected_tokens[i].value);
-    CHECK(tokens[i].id == expected_tokens[i].id);
-    CHECK(tokens[i].line == expected_tokens[i].line);
-    CHECK(tokens[i].column == expected_tokens[i].column);
+    compare_token_lists(tokens, expected_tokens);
 }

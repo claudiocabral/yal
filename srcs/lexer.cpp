@@ -82,13 +82,13 @@ void lex_identifier(FileContext & context, TokenList & tokens)
 void lex_number(FileContext & context, TokenList & tokens)
 {
     auto column = context.column;
-    auto token = find_token_end(context, is_identifier_character);
+    auto token = find_token_end(context, is_digit);
     if (context.text.size() != 0 && context.text[0] != '.')
     {
         tokens.emplace_back(token, TokenId::integer, context.line, column);
         return;
     }
-    auto remainder = find_token_end(context, is_identifier_character);
+    auto remainder = find_token_end(context, is_digit);
     auto result = std::string_view(token.begin(), token.size() + remainder.size());
     tokens.emplace_back(result, TokenId::floating_point, context.line, column);
 }
