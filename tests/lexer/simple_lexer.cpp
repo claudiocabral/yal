@@ -23,7 +23,7 @@ void compare_token_lists(const T & actual, const U & expected)
 
 TEST_CASE("Lex Numbers", "[lex]")
 {
-    constexpr std::string_view numbers =
+    constexpr std::string_view str =
         "1\n"
         "1.0\n"
         "912376921791.0128390180\n"
@@ -39,14 +39,14 @@ TEST_CASE("Lex Numbers", "[lex]")
         akura::Token { "a456", akura::TokenId::identifier, 5, 4},
         akura::Token { "", akura::TokenId::end, 6, 1}
     };
-
-    auto tokens = lex(numbers);
+    TokenList tokens;
+    lex(str, tokens);
     compare_token_lists(tokens, expected_tokens);
 }
 
 TEST_CASE("Lex symbols", "[lex]")
 {
-    constexpr std::string_view symbols =
+    constexpr std::string_view str =
         "\\\"'.(){}[]*/:;"
         "";
     auto expected_tokens = std::array {
@@ -66,13 +66,14 @@ TEST_CASE("Lex symbols", "[lex]")
         akura::Token { ";", akura::TokenId::semicolon, 1, 14},
         akura::Token { "", akura::TokenId::end, 1, 15}
     };
-    auto tokens = lex(symbols);
+    TokenList tokens;
+    lex(str, tokens);
     compare_token_lists(tokens, expected_tokens);
 }
 
 TEST_CASE("Lex comments", "[lex]")
 {
-    constexpr std::string_view symbols =
+    constexpr std::string_view str =
         "abc // abc 123\n"
         "def // abc 123\n"
         "/* /**/*/\n"
@@ -84,6 +85,7 @@ TEST_CASE("Lex comments", "[lex]")
         akura::Token { "z", akura::TokenId::identifier, 4, 1},
         akura::Token { "", akura::TokenId::end, 5, 1},
     };
-    auto tokens = lex(symbols);
+    TokenList tokens;
+    lex(str, tokens);
     compare_token_lists(tokens, expected_tokens);
 }
