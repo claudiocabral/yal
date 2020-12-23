@@ -7,7 +7,6 @@
 
 using akura::Token;
 using akura::TokenId;
-using TokenList = std::vector<Token>;
 using Predicate = bool (*)(char);
 
 struct FileContext {
@@ -23,6 +22,31 @@ static inline bool is_alphabetic(char c) { return (c >= 'A' && c <= 'Z') || (c >
 static inline bool is_alphanumeric(char c) { return is_digit(c) || is_alphabetic(c) || c == '_'; }
 static inline bool is_identifier_character(char c) { return is_alphanumeric(c) || c == '_'; }
 
+auto get_line(std::string_view text, int column)
+{
+    auto begin = text.data() - (column - 1);
+    size_t size = column;
+    for (auto c : text) {
+        if (c == '\n') break;
+    }
+    return std::string_view(begin, size);
+}
+
+void report_lexer_error(FileContext & context, TokenList &tokens)
+{
+    auto line = get_line(context.text, context.column);
+    int size = static_cast<int>(line.size());
+    fprintf(stderr, "%d:%d: Error lexing token:\n%.*s\n%*s\n",
+            context.line,
+            context.column,
+            size,
+            line.data(),
+            size,
+            "^"
+           );
+    exit(1);
+}
+
 void print_tokens(TokenList & tokens)
 {
     for (auto & token : tokens) {
@@ -32,11 +56,11 @@ void print_tokens(TokenList & tokens)
                 akura::token_name(token.id),
                 static_cast<int>(token.value.size()),
                 token.value.data()
-                );
+              );
     }
 }
 
-void emit_token(FileContext & context, TokenList & tokens, TokenId id, int size)
+static void emit_token(FileContext & context, TokenList & tokens, TokenId id, int size)
 {
     auto begin = context.text.begin();
     auto end = context.text.end();
@@ -51,7 +75,7 @@ void emit_token(FileContext & context, TokenList & tokens, TokenId id, int size)
     context.column += size;
 }
 
-template <class Predicate>
+    template <class Predicate>
 auto find_token_end(FileContext & context, Predicate && predicate)
 {
     auto begin = context.text.begin();
@@ -68,7 +92,7 @@ auto find_token_end(FileContext & context, Predicate && predicate)
     return token;
 }
 
-void lex_identifier(FileContext & context, TokenList & tokens)
+static void lex_identifier(FileContext & context, TokenList & tokens)
 {
     auto column = context.column;
     auto token = find_token_end(context, is_identifier_character);
@@ -79,7 +103,7 @@ void lex_identifier(FileContext & context, TokenList & tokens)
     tokens.emplace_back(token, id, context.line, column);
 }
 
-void lex_number(FileContext & context, TokenList & tokens)
+static void lex_number(FileContext & context, TokenList & tokens)
 {
     auto column = context.column;
     auto token = find_token_end(context, is_digit);
@@ -93,7 +117,7 @@ void lex_number(FileContext & context, TokenList & tokens)
     tokens.emplace_back(result, TokenId::floating_point, context.line, column);
 }
 
-void lex_multiline_comment(FileContext & context, TokenList & tokens)
+static void lex_multiline_comment(FileContext & context, TokenList & tokens)
 {
     auto level = 1;
     constexpr int16_t open = ('/' << 8) | ('*');
@@ -134,7 +158,7 @@ void lex_multiline_comment(FileContext & context, TokenList & tokens)
     context.text.remove_prefix(begin - old_begin);
 }
 
-void lex_forward_slash(FileContext & context, TokenList & tokens)
+static void lex_forward_slash(FileContext & context, TokenList & tokens)
 {
     auto column = context.column;
     auto line = context.line;
@@ -165,28 +189,14 @@ void lex_forward_slash(FileContext & context, TokenList & tokens)
     }
 }
 
-void lex_unkwon(FileContext & context)
-{
-    printf("%d:%d: Unkwon token: '%c'\n",
-            context.line,
-            context.column,
-            context.text.front()
-          );
-    ++context.column; context.text.remove_prefix(1);
-}
-
-
-
-
-std::vector<akura::Token> lex(std::string_view text) {
-    std::vector<Token> tokens;
+void lex(std::string_view text, TokenList & tokens) {
     FileContext context{ 1, 1, text };
     while (true)
     {
         if (context.text.size() == 0)
         {
             emit_token(context, tokens, TokenId::end, 0);
-            return tokens;
+            return ;
         }
         auto c = context.text.front();
         if (is_whitespace(c)) { ++context.column; context.text.remove_prefix(1); }
@@ -207,8 +217,7 @@ std::vector<akura::Token> lex(std::string_view text) {
         else if (c == '*') { emit_token(context, tokens, TokenId::operator_star, 1); }
         else if (c == ':') { emit_token(context, tokens, TokenId::colon, 1); }
         else if (c == ';') { emit_token(context, tokens, TokenId::semicolon, 1); }
-        else { lex_unkwon(context); }
+        else { break; }
     }
-    tokens.clear();
-    return tokens;
+    report_lexer_error(context, tokens);
 }

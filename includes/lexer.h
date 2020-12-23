@@ -3,4 +3,6 @@
 #include <string_view>
 #include <tokens.h>
 
-std::vector<akura::Token> lex(std::string_view text);
+using TokenList = std::vector<akura::Token>;
+
+void lex(std::string_view text, TokenList & tokens);
