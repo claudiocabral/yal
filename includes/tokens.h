@@ -53,13 +53,15 @@ namespace akura {
                 keyword_export,
                 end);
     struct Token {
-        std::string_view value;
-        TokenId id;
-        int line;
-        int column;
+        std::string_view value = "";
+        TokenId id = TokenId::end;
+        int line = -1;
+        int column = -1;
         Token() = default;
         Token(const Token &) = default;
         Token(Token &&) = default;
+        Token & operator=(const Token &) = default;
+        Token & operator=(Token &&) = default;
         Token(std::string_view value, TokenId id, int line, int column) :
             value(value),
             id(id),
