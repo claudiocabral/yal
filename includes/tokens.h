@@ -71,4 +71,5 @@ namespace akura {
     constexpr static inline auto & token_name(TokenId id) {
         return tokenDescriptors[static_cast<int>(id)];
     }
+    std::array<std::string_view, 3> get_line(std::string_view text, int column);
 }

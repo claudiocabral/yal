@@ -14,4 +14,16 @@ namespace akura {
         variable_assingment,
         end
     };
+    struct Expression {
+    };
+    struct Statement {
+        std::vector<Expression> expressions;
+    };
+    struct AstNode {
+        AstNodeId id;
+    };
+    struct AbstractSyntaxTree {
+        AstNode self;
+        std::vector<AstNode> children;
+    };
 }
