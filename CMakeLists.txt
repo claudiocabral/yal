@@ -26,7 +26,7 @@ set(INCLUDES
     extern/frozen/include
     )
 
-  #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 
 add_executable(${EXECUTABLE} srcs/main.cpp)
 add_executable(${TEST}

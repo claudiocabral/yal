@@ -13,6 +13,7 @@ struct FileContext {
     int line = 1;
     int column = 1;
     std::string_view text;
+    std::string_view filename;
 };
 
 static inline bool is_whitespace(char c) { return c == ' ' || c == '\t'; }
@@ -22,21 +23,39 @@ static inline bool is_alphabetic(char c) { return (c >= 'A' && c <= 'Z') || (c >
 static inline bool is_alphanumeric(char c) { return is_digit(c) || is_alphabetic(c) || c == '_'; }
 static inline bool is_identifier_character(char c) { return is_alphanumeric(c) || c == '_'; }
 
-auto get_line(std::string_view text, int column)
+std::array<std::string_view, 3> akura::get_line(std::string_view text, int column)
 {
+    std::array<std::string_view, 3> ret;
     auto begin = text.data() - (column - 1);
-    size_t size = column;
+    ret[0] = std::string_view(begin, text.data() - begin);
+    ret[1] = text;
+    int i = 0;
     for (auto c : text) {
         if (c == '\n') break;
+        ++i;
     }
-    return std::string_view(begin, size);
+    ret[2] = std::string_view(text.end(), i);
+    return ret;
+}
+
+auto lexer_get_line(std::string_view text, int column)
+{
+    auto begin = text.data() - (column - 1);
+    int i = 0;
+    for (auto c : text) {
+        if (c == '\n') break;
+        ++i;
+    }
+    return std::string_view(begin, i + column - 1);
 }
 
 void report_lexer_error(FileContext & context, TokenList &tokens)
 {
-    auto line = get_line(context.text, context.column);
-    int size = static_cast<int>(line.size());
-    fprintf(stderr, "%d:%d: Error lexing token:\n%.*s\n%*s\n",
+    auto line = lexer_get_line(context.text, context.column);
+    int size = line.size();
+    fprintf(stderr, "%.*s:%d:%d: Error lexing character:\n%.*s\n%*s\n",
+            static_cast<int>(context.filename.size()),
+            context.filename.data(),
             context.line,
             context.column,
             size,
@@ -189,8 +208,10 @@ static void lex_forward_slash(FileContext & context, TokenList & tokens)
     }
 }
 
-void lex(std::string_view text, TokenList & tokens) {
-    FileContext context{ 1, 1, text };
+void lex(std::string_view text, std::string_view filename, TokenList & tokens) {
+    FileContext context{ 1, 1, text, filename };
+    Channel<akura::Token> tk;
+    tk.push_back(Token{});
     while (true)
     {
         if (context.text.size() == 0)
@@ -217,6 +238,7 @@ void lex(std::string_view text, TokenList & tokens) {
         else if (c == '*') { emit_token(context, tokens, TokenId::operator_star, 1); }
         else if (c == ':') { emit_token(context, tokens, TokenId::colon, 1); }
         else if (c == ';') { emit_token(context, tokens, TokenId::semicolon, 1); }
+        else if (c == '=') { emit_token(context, tokens, TokenId::operator_equals, 1); }
         else { break; }
     }
     report_lexer_error(context, tokens);

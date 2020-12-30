@@ -40,7 +40,7 @@ TEST_CASE("Lex Numbers", "[lex]")
         akura::Token { "", akura::TokenId::end, 6, 1}
     };
     TokenList tokens;
-    lex(str, tokens);
+    lex(str, "dummy_name", tokens);
     compare_token_lists(tokens, expected_tokens);
 }
 
@@ -67,7 +67,7 @@ TEST_CASE("Lex symbols", "[lex]")
         akura::Token { "", akura::TokenId::end, 1, 15}
     };
     TokenList tokens;
-    lex(str, tokens);
+    lex(str, "dummy_name", tokens);
     compare_token_lists(tokens, expected_tokens);
 }
 
@@ -86,6 +86,6 @@ TEST_CASE("Lex comments", "[lex]")
         akura::Token { "", akura::TokenId::end, 5, 1},
     };
     TokenList tokens;
-    lex(str, tokens);
+    lex(str, "dummy_name", tokens);
     compare_token_lists(tokens, expected_tokens);
 }
